@@ -127,3 +127,33 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+
+# data folders 
+MNIST/
+
+# lightning logs 
+lightning_logs/
+
+#vscode settings
+.vscode/
+
+# dataset-related files and directories
+MNIST/
+cifar-10-batches-py/
+*.tar.gz
+*.mat
+datasets/
+
+# model checkpoints 
+*.pth
+*.t7
+*.ckpt
+data/
+wandb/
+
+# experiment results
+outputs/*.txt
+
+# Mac OS Files 
+.DS_Store
