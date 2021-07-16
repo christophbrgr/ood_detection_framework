@@ -1,6 +1,10 @@
 # OOD Detection Framework
 Code for our paper **Confidence-based Out-of-Distribution Detection: A Comparative Study and Analysis**
 
+> Berger, Christoph, Magdalini Paschali, Ben Glocker, and Konstantinos Kamnitsas. "Confidence-based Out-of-Distribution Detection: A Comparative Study and Analysis." arXiv preprint arXiv:2107.02568 (2021).
+### Intro 
+![Methods](figures/figure1.png)
+
 Implemented methods: 
 * Maximum Class Probability
 * Deep Ensembles
@@ -29,11 +33,11 @@ Run `eval_chexpert.py -h` or `eval_cifar10.py -h` to see which methods you can r
 ![CheXpert  Results](figures/chexpert.png)
 
 ## Repositories that helped assemble this collection of baselines
-WideResNet from https://github.com/meliketoy/wide-resnet.pytorch/blob/master/config.py
-Values from SVHN for normalization: https://deepobs.readthedocs.io/en/develop/_modules/deepobs/pytorch/datasets/svhn.html
-Mahalanobis: https://github.com/pokaxpoka/deep_Mahalanobis_detector
-ODIN: https://github.com/facebookresearch/odin
-DUQ: https://github.com/y0ast/deterministic-uncertainty-quantification
+* WideResNet from https://github.com/meliketoy/wide-resnet.pytorch/blob/master/config.py
+* Values from SVHN for normalization: https://deepobs.readthedocs.io/en/develop/_modules/deepobs/pytorch/datasets/svhn.html
+* Mahalanobis: https://github.com/pokaxpoka/deep_Mahalanobis_detector
+* ODIN: https://github.com/facebookresearch/odin
+* DUQ: https://github.com/y0ast/deterministic-uncertainty-quantification
 
 ## How to cite
 
