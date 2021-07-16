@@ -33,6 +33,8 @@ parser.add_argument('--wandb', '-w', action='store_true', type=bool, default=Tru
                     help='Weights and Biases Logging (requires login)')
 parser.add_argument('--debug', '-d', action='store_true', type=bool, default=False, 
                     help='Debug Mode with 1 epoch')
+parser.add_argument('--id', '-i', type=int, default=0,
+                    help='ID of the run')
 args = parser.parse_args()
 
 # Hyper Parameter settings
@@ -66,7 +68,14 @@ if not os.path.isdir(save_point):
     os.mkdir(save_point)
 experiment_runs = len(os.listdir(save_point))
 print('| Number of experiments saved: {}'.format(experiment_runs))
-experiment_run = experiment_runs + 1
+
+
+#### Get a random ID #####
+random.seed()
+if args.id == 0:
+    experiment_run = random.randint(experiment_runs+1, 1000000)
+else:
+    experiment_run = args.id
 print('| ID of this run: {}'.format(experiment_run))
 
 
@@ -85,7 +94,7 @@ policy = 0.0
 print(f'All uncertain labels will be replaced with: {policy} (1 == positive, 0 == negative)')
 data_modified = data_modified.replace(-1.0, policy)
 # return only the needed classes 
-dataset = selectClasses(data_modified, classes_in, classes_out)
+dataset, weights = selectClasses(data_modified, classes_in, classes_out)
 
 # split into train/val/test 
 if args.debug:
@@ -93,18 +102,20 @@ if args.debug:
     df_validation = dataset.drop(df_train.index)
     df_validation = df_validation.sample(n=10, random_state=42)
 else:
-    df_validation = dataset.sample(frac=0.1,random_state=42)
+    df_validation = dataset.sample(frac=0.2,random_state=42)
     df_train = dataset.drop(df_validation.index)
-    df_test = df_train.sample(frac=0.1, random_state=42)
-    df_train = dataset.drop(df_test.index)
+    df_test = df_validation.sample(frac=0.5, random_state=42)
+    df_validation = df_validation.drop(df_test.index)
     df_test.to_csv(os.path.join(root, f'test_{experiment_run}.csv'))
 
 print(f'| Length of train dataset: {len(df_train)}')
 print(f'| Length of validation dataset: {len(df_validation)}')
+print(f'| Length of test dataset: {len(df_test)}')
+print(f'| Weights to balance the classes: {weights}')
 
 # get dataloaders
 args_train = {'resize': resize, 'batch_size': batch_size, 'shuffle': True, 'root': 'datasets/'}
-trainloader = fetch_dataloader(args=SimpleNamespace(**args_train), dataframe=df_train)
+trainloader = fetch_dataloader(args=SimpleNamespace(**args_train), dataframe=df_train, weights=weights)
 
 args_validation = {'resize': resize, 'batch_size': batch_size, 'shuffle': False, 'root': 'datasets/'}
 validationloader = fetch_dataloader(args=SimpleNamespace(**args_validation), dataframe=df_validation)

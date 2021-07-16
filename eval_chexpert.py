@@ -161,48 +161,15 @@ if use_cuda:
     cudnn.benchmark = True
 
 
-def load_mcdp_net():
-    net = Wide_ResNet(28, 10, 0.3, 10)
-    checkpoint = torch.load(
-        './checkpoint/'+args.dataset+os.sep+file_name+'.pth')
-    print(checkpoint.keys())
-    net.load_state_dict(checkpoint)
-
-    if use_cuda:
-        net.cuda()
-        net = torch.nn.DataParallel(
-            net, device_ids=range(torch.cuda.device_count()))
-        cudnn.benchmark = True
-    return net
-
 
 def load_nets():
     # for deep ensembles
-    # ['_odin-12', '-2', '-4', '-5', '-8']
-    extensions = ['-17', '-18', '-15', '-24', '-23']
-    nets = []
-    for e in extensions:
-        file_name = 'wide-resnet-'+str(args.depth)+'x'+str(args.widen_factor)+e
-        checkpoint = torch.load(
-            './checkpoint/'+args.dataset+os.sep+file_name+'.t7')
-        net = checkpoint['net']
-        if use_cuda:
-            net.cuda()
-            net = torch.nn.DataParallel(
-                net, device_ids=range(torch.cuda.device_count()))
-            cudnn.benchmark = True
-        nets.append(net)
-    return nets
-
-
-def load_nets_mahalanobis():
-    # for deep ensembles
-    extensions = ['-17', '-18', '-15', '-24', '-23']
+    extensions = ['527978', '539077', '64']
     nets = []
     for e in extensions:
         net = Wide_ResNet(args.depth, args.widen_factor,
                           args.dropout, num_classes)
-        file_name = 'wide-resnet-'+str(args.depth)+'x'+str(args.widen_factor)+e
+        file_name = f'wide-resnet-{args.depth}x{args.widen_factor}_cheXpert-{e}'
         checkpoint = torch.load(
             './checkpoint/'+args.dataset+os.sep+file_name+'.pth')
         # adapt net to state
@@ -231,7 +198,7 @@ def ood_loop(eval_func, ood_set, method, save_dir, net, testloader, oodloader):
     elapsed_time = 0
     start_time = time.time()
     # testing OOD dataset
-    eval_func(f1_path, f2_path, net, testloader, oodloader)
+    eval_func(f1_path, f2_path, net, testloader, oodloader, save_dir=save_dir)
     epoch_time = time.time() - start_time
     elapsed_time += epoch_time
     print('| Elapsed time : %d:%02d:%02d' % (cf.get_hms(elapsed_time)))
@@ -253,7 +220,7 @@ def ood_loop_mahalanobis(eval_func, ood_set, method, save_dir, net, testloader, 
     start_time = time.time()
     # testing OOD dataset
     eval_func(f1_path, f2_path, net, trainloader=trainloader,
-              testloader=testloader, oodloader=oodloader, magnitude=0.0)
+              testloader=testloader, oodloader=oodloader, magnitude=0.0, num_classes=len(classes_in), save_dir=save_dir)
     epoch_time = time.time() - start_time
     elapsed_time += epoch_time
     print('| Elapsed time : %d:%02d:%02d' % (cf.get_hms(elapsed_time)))
@@ -265,13 +232,27 @@ def ood_loop_mahalanobis(eval_func, ood_set, method, save_dir, net, testloader, 
 if args.method.lower() == 'odin':
     eval_func = odin.eval
     method = 'ODIN'
+    ood_loop(eval_func, ood_set, method, save_dir, net, testloader, oodloader)
+    # tempering only evaluation
+    method = 'ODIN_TEMPERING_ONLY'
+    eval_func = odin_t.eval
+    ood_loop(eval_func, ood_set, method, save_dir, net, testloader, oodloader)
+    # adversarial only evaluation
+    method = 'ODIN_ADVERSARIAL_ONLY'
+    eval_func = odin_adv.eval
+    ood_loop(eval_func, ood_set, method, save_dir, net, testloader, oodloader)
+    sys.exit(0)
 elif args.method.lower() == 'mcdp':
     eval_func = mcdp.eval
     method = 'MCDP'
-    net = load_mcdp_net()
+    # net = load_mcdp_net()
 elif args.method.lower() == 'deepensemble' or args.method.lower() == 'de':
     eval_func = deepensemble.eval
     method = 'Ensemble'
+    net = load_nets()  # watch out, this actually loads multiple nets
+elif args.method.lower() == 'mcdpensemble' or args.method.lower() == 'mcen':
+    eval_func = mcdp_ensemble.eval
+    method = 'MonteCarloEnsemble'
     net = load_nets()  # watch out, this actually loads multiple nets
 elif args.method.lower() == 'mahalanobis' or args.method.lower() == 'ma':
     method = 'Mahalanobis'
@@ -281,7 +262,7 @@ elif args.method.lower() == 'mahalanobis' or args.method.lower() == 'ma':
 elif args.method.lower() == 'mahalanobis-ensemble' or args.method.lower() == 'me':
     eval_func = mahalanobis_ensemble.eval
     method = 'MahalanobisEnsemble'
-    nets = load_nets_mahalanobis()  # watch out, this actually loads multiple nets
+    nets = load_nets()  # watch out, this actually loads multiple nets
     ood_loop_mahalanobis(mahalanobis_ensemble.eval, ood_set, method,
                          save_dir, nets, testloader, oodloader, trainloader)
     sys.exit(0)
@@ -290,26 +271,37 @@ else:
     method = 'MCP'
 
 
-if args.method.lower() == 'all':
+if args.method.lower() == 'all_ensembles':
     t0 = time.time()
-    mcp_auroc = ood_loop(mcp.eval, ood_set, 'MCP',
-                         save_dir, net, testloader, oodloader)
-    odin_auroc = ood_loop(odin.eval, ood_set, 'ODIN',
-                          save_dir, net, testloader, oodloader)
-    #net = load_mcdp_net()
-    mcdp_auroc = ood_loop(mcdp.eval, ood_set, 'MCDP',
-                          save_dir, net, testloader, oodloader)
-    mahal_auroc = ood_loop_mahalanobis(mahalanobis.eval, ood_set, 'Mahalanobis',
-                                       save_dir, net, testloader, oodloader, trainloader)
     # load deep ensemble nets
-    nets = load_nets_mahalanobis()
+    nets = load_nets()
     ensemble_auroc = ood_loop(
         deepensemble.eval, ood_set, 'DeepEnsemble', save_dir, nets, testloader, oodloader)
     mahal_ensemble_auroc = ood_loop_mahalanobis(mahalanobis_ensemble.eval, ood_set, 'MahalanobisEnsemble',
                                                 save_dir, nets, testloader, oodloader, trainloader)
     print(
-        f'AUROC\nMCP:  {mcp_auroc}\nODIN: {odin_auroc}\nMCDP: {mcdp_auroc}\nMahalanobis: {mahal_auroc}\nMahalanobis Ensemble: {mahal_ensemble_auroc}\nDeep Ensemble: {ensemble_auroc}')
+        f'AUROC\nMahalanobis Ensemble: {mahal_ensemble_auroc}\nDeep Ensemble: {ensemble_auroc}')
     print(f'Elapsed time: {t0 - time.time()}')
-
+elif args.method.lower() == 'all_single':
+    t0 = time.time()
+    mcp_auroc = ood_loop(mcp.eval, ood_set, 'MCP',
+                         save_dir, net, testloader, oodloader)
+    odin_auroc = ood_loop(odin.eval, ood_set, 'ODIN',
+                          save_dir, net, testloader, oodloader)
+    # tempering only evaluation
+    method = 'ODIN_TEMPERING_ONLY'
+    odin_t_auroc = ood_loop(odin_t.eval, ood_set, method, save_dir, net, testloader, oodloader)
+    # adversarial only evaluation
+    method = 'ODIN_ADVERSARIAL_ONLY'
+    odin_adv_auroc = ood_loop(odin_adv.eval, ood_set, method, save_dir, net, testloader, oodloader)
+    #net = load_mcdp_net()
+    mcdp_auroc = ood_loop(mcdp.eval, ood_set, 'MCDP',
+                          save_dir, net, testloader, oodloader)
+    mahal_auroc = ood_loop_mahalanobis(mahalanobis.eval, ood_set, 'Mahalanobis',
+                                       save_dir, net, testloader, oodloader, trainloader)
+    print(
+        f'AUROC\nMCP:  {mcp_auroc}\nODIN: {odin_auroc}\nODIN ADV: {odin_adv_auroc}\nODIN TEMP: {odin_t_auroc}\nMCDP: {mcdp_auroc}\nMahalanobis: {mahal_auroc}')
+    print(f'Elapsed time: {t0 - time.time()}')
 else:
     ood_loop(eval_func, ood_set, method, save_dir, net, testloader, oodloader)
+    

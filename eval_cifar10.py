@@ -64,20 +64,13 @@ transform_ood = transforms.Compose([
     transforms.Normalize(cf.mean[ood_set], cf.std[ood_set]),
 ])
 
-if(args.dataset == 'cifar10'):
-    print("| Preparing CIFAR-10 dataset...")
-    sys.stdout.write("| ")
-    testset = torchvision.datasets.CIFAR10(
-        root='./data', train=False, download=True, transform=transform_test)
-    dataset = torchvision.datasets.CIFAR10(
-        root='./data', train=True, download=True, transform=transform_train)
-    num_classes = 10
-elif(args.dataset == 'cifar100'):
-    print("| Preparing CIFAR-100 dataset...")
-    sys.stdout.write("| ")
-    testset = torchvision.datasets.CIFAR100(
-        root='./data', train=False, download=False, transform=transform_test)
-    num_classes = 100
+print("| Preparing CIFAR-10 dataset...")
+sys.stdout.write("| ")
+testset = torchvision.datasets.CIFAR10(
+    root='./data', train=False, download=True, transform=transform_test)
+dataset = torchvision.datasets.CIFAR10(
+    root='./data', train=True, download=True, transform=transform_train)
+num_classes = 10
 
 # prep ood dataset
 if ood_set == 'svhn':
