@@ -1,6 +1,17 @@
 ############### Pytorch CHEXPERT SETTING 2 configuration file ###############
 import math
 
+
+# best model IDs for evaluation of pre-trained models
+best = {
+    'setting1': 51,
+    'setting2': 527978
+}
+ensemble = {
+    'setting1': ['51', '47', '61']
+    'setting2': ['527978', '539077', '64']
+}
+
 start_epoch = 1
 num_epochs = 200
 batch_size = 16

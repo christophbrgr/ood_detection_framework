@@ -143,7 +143,7 @@ MNIST/
 cifar-10-batches-py/
 *.tar.gz
 *.mat
-datasets/
+CheXpert-v1.0-small/
 
 # model checkpoints 
 *.pth

@@ -2,6 +2,9 @@
 ## This and the files for wide resnet are modified from https://github.com/meliketoy/wide-resnet.pytorch/blob/master/config.py
 import math
 
+# best model IDs for evaluation of pre-trained models
+best = 17
+ensemble = ['17', '18', '15', '24', '23']
 
 start_epoch = 1
 num_epochs = 200
@@ -29,13 +32,11 @@ image_size = 32
 # values for svhn from: https://deepobs.readthedocs.io/en/develop/_modules/deepobs/pytorch/datasets/svhn.html
 mean = {
     'cifar10': (0.4914, 0.4822, 0.4465),
-    'cifar100': (0.5071, 0.4867, 0.4408),
     'svhn': (0.4376821, 0.4437697, 0.47280442),
 }
 
 std = {
     'cifar10': (0.2023, 0.1994, 0.2010),
-    'cifar100': (0.2675, 0.2565, 0.2761),
     'svhn': (0.19803012, 0.20101562, 0.19703614),
 }
 

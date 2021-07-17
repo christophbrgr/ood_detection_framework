@@ -12,7 +12,6 @@ import torch
 import torch.backends.cudnn as cudnn
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.optim as optim
 import torchvision
 import torchvision.transforms as T
 from torch.autograd import Variable
@@ -20,24 +19,14 @@ from types import SimpleNamespace
 
 from models.wide_resnet import Wide_ResNet
 from util.metrics import get_metrics
-import config as cf
+from config import chexpert as cf
 from dataloaders.chexpert import fetch_dataloader, selectClasses
 from methods import mcp, odin, mcdp, deepensemble, mahalanobis, mahalanobis_ensemble
 
 parser = argparse.ArgumentParser(description='PyTorch CheXpert Evaluation')
-parser.add_argument('--lr', default=0.001, type=float, help='learning_rate')
-parser.add_argument('--net_type', default='wide-resnet',
-                    type=str, help='model')
-parser.add_argument('--depth', default=100, type=int, help='depth of model')
-parser.add_argument('--widen_factor', default=2,
-                    type=int, help='width of model')
-parser.add_argument('--dropout', default=0.3, type=float, help='dropout_rate')
-parser.add_argument('--dataset', default='chexpert', type=str,
-                    help='dataset = [cifar10/cifar100]')
-parser.add_argument('--resume', '-r', action='store_true',
-                    help='resume from checkpoint')
-parser.add_argument('--testOnly', '-t', action='store_true',
-                    help='Test mode with the saved model')
+
+parser.add_argument('--setting', default='setting1', type=str,
+                    help='dataset setting for CheXpert, either setting1 (default) or setting2')
 parser.add_argument('--debug', '-d', action='store_true',
                     help='Debug Mode with 1 epoch')
 parser.add_argument('--method', '-m', type=str, default='mcp',
@@ -49,19 +38,19 @@ use_cuda = torch.cuda.is_available()
 print('Using GPU: {}'.format(torch.cuda.device_count()))
 best_acc = 0
 
+dataset_name = 'chexpert'
 
-start_epoch = 1
-num_epochs = 200
-args.batch_size = 5 if args.debug else 4
-batch_size = args.batch_size
-optim_type = 'SGD'
+batch_size = 5 if args.debug else cf.batch_size
 
-resize = 224 # image size
+resize = cf.image_size # image size
 
-classes_in = ['Cardiomegaly','Pneumothorax']
-classes_out = ["Consolidation"]
+classes_in = cf.classes_in[args.setting]
+classes_out = cf.classes_out[args.setting]
 
 num_classes = len(classes_in)
+
+# this loads the best model
+model_id = str(cf.best)
 
 # this should come from args in the future
 ood_set = classes_out[0]
@@ -137,15 +126,15 @@ args_train = {'resize': resize, 'batch_size': batch_size, 'shuffle': True, 'root
 trainloader = fetch_dataloader(args=SimpleNamespace(**args_train), dataframe=df_train, transforms=transforms)
 
 # Return network & file name
-net = Wide_ResNet(args.depth, args.widen_factor, args.dropout, num_classes)
-file_name = 'wide-resnet-'+str(args.depth)+'x'+str(args.widen_factor)+'_cheXpert-38'
+net = Wide_ResNet(depth, widen_factor, dropout, num_classes)
+file_name = f'wide-resnet-{depth}x{widen_factor}_cheXpert-{model_id}'
 
 print('| Loading model: {}'.format(file_name))
 
 # Test only option
 print('\n[Test Phase] : Model setup')
 assert os.path.isdir('checkpoint'), 'Error: No checkpoint directory found!'
-checkpoint = torch.load('./checkpoint/'+args.dataset+os.sep+file_name+'.pth')
+checkpoint = torch.load('./checkpoint/'+dataset_name+os.sep+file_name+'.pth')
 # print(checkpoint.keys())
 # adapt net to state
 params = {}
@@ -167,11 +156,11 @@ def load_nets():
     extensions = ['527978', '539077', '64']
     nets = []
     for e in extensions:
-        net = Wide_ResNet(args.depth, args.widen_factor,
-                          args.dropout, num_classes)
-        file_name = f'wide-resnet-{args.depth}x{args.widen_factor}_cheXpert-{e}'
+        net = Wide_ResNet(depth, widen_factor,
+                          dropout, num_classes)
+        file_name = f'wide-resnet-{depth}x{widen_factor}_cheXpert-{e}'
         checkpoint = torch.load(
-            './checkpoint/'+args.dataset+os.sep+file_name+'.pth')
+            './checkpoint/'+dataset_name+os.sep+file_name+'.pth')
         # adapt net to state
         params = {}
         for k_old in checkpoint.keys():
@@ -304,4 +293,3 @@ elif args.method.lower() == 'all_single':
     print(f'Elapsed time: {t0 - time.time()}')
 else:
     ood_loop(eval_func, ood_set, method, save_dir, net, testloader, oodloader)
-    

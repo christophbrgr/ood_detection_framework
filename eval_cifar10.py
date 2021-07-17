@@ -39,6 +39,9 @@ widen_factor = cf.widen_factor
 dropout = cf.dropout
 lr = cf.lr 
 
+# this selects the best model
+model_id = str(cf.best)
+
 # this should come from args in the future
 ood_set = 'svhn'
 dataset_name = 'cifar10'
@@ -88,7 +91,8 @@ trainloader = torch.utils.data.DataLoader(
 
 # Return network & file name
 net = Wide_ResNet(depth, widen_factor, dropout, num_classes)
-file_name = 'wide-resnet-'+str(depth)+'x'+str(widen_factor)+'-17'
+
+file_name = f'wide-resnet-{depth}x{widen_factor}-{model_id}'
 
 print('| Loading model: {}'.format(file_name))
 
@@ -96,7 +100,7 @@ print('| Loading model: {}'.format(file_name))
 print('\n[Test Phase] : Model setup')
 assert os.path.isdir('checkpoint'), 'Error: No checkpoint directory found!'
 checkpoint = torch.load('./checkpoint/'+args.dataset+os.sep+file_name+'.pth')
-# print(checkpoint.keys())
+
 # adapt net to state
 params = {}
 for k_old in checkpoint.keys():
@@ -106,37 +110,17 @@ net.load_state_dict(params)
 
 if use_cuda:
     net.cuda()
-    # net = torch.nn.DataParallel(
-    #     net, device_ids=range(torch.cuda.device_count()))
     cudnn.benchmark = True
-
 
 def load_nets():
     # for deep ensembles
-    extensions = ['-17', '-18', '-15', '-24', '-23']
+    extensions = cf.ensemble
+    print(f'| Loading the following nets from config: {extensions}')
     nets = []
     for e in extensions:
-        file_name = 'wide-resnet-'+str(args.depth)+'x'+str(args.widen_factor)+e
-        checkpoint = torch.load(
-            './checkpoint/'+args.dataset+os.sep+file_name+'.t7')
-        net = checkpoint['net']
-        if use_cuda:
-            net.cuda()
-            net = torch.nn.DataParallel(
-                net, device_ids=range(torch.cuda.device_count()))
-            cudnn.benchmark = True
-        nets.append(net)
-    return nets
-
-
-def load_nets_mahalanobis():
-    # for deep ensembles
-    extensions = ['-17', '-18', '-15', '-24', '-23']
-    nets = []
-    for e in extensions:
-        net = Wide_ResNet(args.depth, args.widen_factor,
-                          args.dropout, num_classes)
-        file_name = 'wide-resnet-'+str(args.depth)+'x'+str(args.widen_factor)+e
+        net = Wide_ResNet(depth, widen_factor,
+                          dropout, num_classes)
+        file_name = f'wide-resnet-{depth}x{widen_factor}-{e}'
         checkpoint = torch.load(
             './checkpoint/'+args.dataset+os.sep+file_name+'.pth')
         # adapt net to state
@@ -224,7 +208,7 @@ elif args.method.lower() == 'mahalanobis' or args.method.lower() == 'ma':
 elif args.method.lower() == 'mahalanobis-ensemble' or args.method.lower() == 'me':
     eval_func = mahalanobis_ensemble.eval
     method = 'MahalanobisEnsemble'
-    nets = load_nets_mahalanobis()  # watch out, this actually loads multiple nets
+    nets = load_nets()  # watch out, this actually loads multiple nets
     ood_loop_mahalanobis(mahalanobis_ensemble.eval_cifar10, ood_set, method,
                          save_dir, nets, testloader, oodloader, trainloader)
     sys.exit(0)
@@ -244,7 +228,7 @@ if args.method.lower() == 'all':
     mahal_auroc = ood_loop_mahalanobis(mahalanobis.eval_cifar10, ood_set, 'Mahalanobis',
                                        save_dir, net, testloader, oodloader, trainloader)
     # load deep ensemble nets
-    nets = load_nets_mahalanobis()
+    nets = load_nets()
     ensemble_auroc = ood_loop(
         deepensemble.eval_cifar10, ood_set, 'DeepEnsemble', save_dir, nets, testloader, oodloader)
     mahal_ensemble_auroc = ood_loop_mahalanobis(mahalanobis_ensemble.eval_cifar10, ood_set, 'MahalanobisEnsemble',

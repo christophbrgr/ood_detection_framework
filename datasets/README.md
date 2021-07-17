@@ -1,0 +1,1 @@
+You should place your datasets here. A subfolder with the unzipped `CheXpert-v1.0-small` should live here. 
