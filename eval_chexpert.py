@@ -54,7 +54,7 @@ model_id = str(cf.best)
 
 # this should come from args in the future
 ood_set = classes_out[0]
-save_dir = 'outputs'
+save_dir = os.path.join('outputs', f'chexpert_{args.setting}')
 
 
 print('\n[Phase 1] : Data Preparation')

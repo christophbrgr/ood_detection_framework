@@ -45,7 +45,7 @@ model_id = str(cf.best)
 # this should come from args in the future
 ood_set = 'svhn'
 dataset_name = 'cifar10'
-save_dir = os.path.join('outputs', f'run_cifar10')
+save_dir = os.path.join('outputs', f'cifar10')
 
 batch_size = 128
 
