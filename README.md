@@ -1,5 +1,5 @@
 # OOD Detection Framework
-Code for our paper **Confidence-based Out-of-Distribution Detection: A Comparative Study and Analysis**
+Code for our paper [**Confidence-based Out-of-Distribution Detection: A Comparative Study and Analysis**](https://arxiv.org/abs/2107.02568)
 
 > Berger, Christoph, Magdalini Paschali, Ben Glocker, and Konstantinos Kamnitsas. "Confidence-based Out-of-Distribution Detection: A Comparative Study and Analysis." arXiv preprint arXiv:2107.02568 (2021).
 ### Intro 
