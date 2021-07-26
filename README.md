@@ -29,6 +29,9 @@ Train new models using `train_wrn_cifar10.py` or `train_wrn_chexpert.py`. To ada
 ### Evaluation
 Run `eval_chexpert.py -h` or `eval_cifar10.py -h` to see which methods you can run. You can also specify the exact IDs of pretrained models in the config to set which one the code loads. 
 
+### Further Analysis and Files 
+Some of the jupyter notebooks used for plotting of figures or analysing the results in more depth are located in the `notebooks` directory. However, some of the code and contents are experimental and might not work as intended. 
+
 ### Reference Results
 #### CIFAR10 vs SVHN
 ![CIFAR10 Results](figures/cifar10.png)
