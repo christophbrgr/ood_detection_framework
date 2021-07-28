@@ -1,0 +1,24 @@
+---
+cff-version: 1.2.0
+message: "If you use this software, please cite it using these metadata."
+authors: 
+  -
+    affiliation: "Computer-Aided Medical Procedures, Technical University of Munich"
+    family-names: Berger
+    given-names: Christoph
+  -
+    affiliation: "Computer-Aided Medical Procedures, Technical University of Munich"
+    family-names: Paschali
+    given-names: Magdalini
+  -
+    affiliation: "Imperial College London"
+    family-names: Glocker
+    given-names: Ben
+  -
+    affiliation: "Imperial College London"
+    family-names: Kamnitsas
+    given-names: Konstantinos
+license: MIT
+repository-code: "https://github.com/christophbrgr/ood_detection_framework"
+title: "Confidence-based Out-of-Distribution Detection: A Comparative Study and Analysis"
+...
