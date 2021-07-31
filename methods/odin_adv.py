@@ -89,7 +89,7 @@ def eval(path_in, path_out, net, testloader, oodloader, use_cuda=True, noiseMagn
     auroc_classification = skm.auc(fpr, tpr)
     print("| Test Result\tAcc@1: %.2f%%" %(acc))
     print(f'| ECE: {ece.item()}')
-    print(f'| ECE v2: {ece_score(logits.cpu(), labels.cpu())}')
+    # print(f'| ECE v2: {ece_score(logits.cpu(), labels.cpu())}')
     print(f'| Acc list: {acc_list}')
     print(f'| AUROC classification: {auroc_classification}')
 
@@ -204,7 +204,7 @@ def eval_cifar10(path_in, path_out, net, testloader, oodloader, use_cuda=True, n
     auroc_classification = skm.auc(fpr, tpr)
     print("| Test Result\tAcc@1: %.2f%%" %(acc))
     print(f'| ECE: {ece.item()}')
-    print(f'| ECE v2: {ece_score(logits.cpu(), labels.cpu())}')
+    # print(f'| ECE v2: {ece_score(logits.cpu(), labels.cpu())}')
     print(f'| Acc list: {acc_list}')
     print(f'| AUROC classification: {auroc_classification}')
 

@@ -80,9 +80,9 @@ transform_test = transforms.Compose([
 print("| Preparing CIFAR-10 dataset...")
 sys.stdout.write("| ")
 dataset = torchvision.datasets.CIFAR10(
-    root='./data', train=True, download=True, transform=None)
+    root='./datasets', train=True, download=True, transform=None)
 testset = torchvision.datasets.CIFAR10(
-    root='./data', train=False, download=False, transform=transform_test)
+    root='./datasets', train=False, download=False, transform=transform_test)
 validation_length = int(len(dataset)*args.valSize)
 train_length = len(dataset) - validation_length
 print('Size of Validation Set: {}\nSize of Training Set: {}'.format(

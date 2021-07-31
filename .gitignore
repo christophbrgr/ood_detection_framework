@@ -153,7 +153,8 @@ data/
 wandb/
 
 # experiment results
-outputs/*.txt
+outputs/*
+*.pkl
 
 # Mac OS Files 
 .DS_Store

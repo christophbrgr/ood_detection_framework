@@ -54,12 +54,12 @@ transform_train = transforms.Compose([
     transforms.RandomCrop(32, padding=4),
     transforms.RandomHorizontalFlip(),
     transforms.ToTensor(),
-    transforms.Normalize(cf.mean[args.dataset], cf.std[args.dataset]),
+    transforms.Normalize(cf.mean[dataset_name], cf.std[dataset_name]),
 ])
 
 transform_test = transforms.Compose([
     transforms.ToTensor(),
-    transforms.Normalize(cf.mean[args.dataset], cf.std[args.dataset]),
+    transforms.Normalize(cf.mean[dataset_name], cf.std[dataset_name]),
 ])
 
 transform_ood = transforms.Compose([
@@ -70,9 +70,9 @@ transform_ood = transforms.Compose([
 print("| Preparing CIFAR-10 dataset...")
 sys.stdout.write("| ")
 testset = torchvision.datasets.CIFAR10(
-    root='./data', train=False, download=True, transform=transform_test)
+    root='./datasets', train=False, download=True, transform=transform_test)
 dataset = torchvision.datasets.CIFAR10(
-    root='./data', train=True, download=True, transform=transform_train)
+    root='./datasets', train=True, download=True, transform=transform_train)
 num_classes = 10
 
 # prep ood dataset
@@ -99,7 +99,7 @@ print('| Loading model: {}'.format(file_name))
 # Test only option
 print('\n[Test Phase] : Model setup')
 assert os.path.isdir('checkpoint'), 'Error: No checkpoint directory found!'
-checkpoint = torch.load('./checkpoint/'+args.dataset+os.sep+file_name+'.pth')
+checkpoint = torch.load('./checkpoint/'+dataset_name+os.sep+file_name+'.pth')
 
 # adapt net to state
 params = {}
@@ -122,7 +122,7 @@ def load_nets():
                           dropout, num_classes)
         file_name = f'wide-resnet-{depth}x{widen_factor}-{e}'
         checkpoint = torch.load(
-            './checkpoint/'+args.dataset+os.sep+file_name+'.pth')
+            './checkpoint/'+dataset_name+os.sep+file_name+'.pth')
         # adapt net to state
         params = {}
         for k_old in checkpoint.keys():
