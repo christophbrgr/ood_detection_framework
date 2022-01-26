@@ -1,6 +1,7 @@
 # OOD Detection Framework
 [![CodeFactor](https://www.codefactor.io/repository/github/christophbrgr/ood_detection_framework/badge)](https://www.codefactor.io/repository/github/christophbrgr/ood_detection_framework)
-Code for our paper [**Confidence-based Out-of-Distribution Detection: A Comparative Study and Analysis**](https://arxiv.org/abs/2107.02568)
+
+Code for our paper [**Confidence-based Out-of-Distribution Detection: A Comparative Study and Analysis**](https://arxiv.org/abs/2107.02568) which won the best paper award at the UNSURE 2021 workshop at MICCAI. 
 
 > Berger, Christoph, Magdalini Paschali, Ben Glocker, and Konstantinos Kamnitsas. "Confidence-based Out-of-Distribution Detection: A Comparative Study and Analysis." arXiv preprint arXiv:2107.02568 (2021).
 ### Intro 
